@@ -1,0 +1,79 @@
+<div class="modal fade" id="modalContactForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Mahsulot qo'shish</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <form action="{% url 'add_product' %}" method="POST" enctype="multipart/form-data" class="container">
+          {% csrf_token %}
+          <div class="form-group">
+              <label for="title">Product Name</label>
+              <input type="text" class="form-control" name="title" id="title" required>
+          </div>
+      
+          <div class="form-group">
+              <label for="description">Product Description</label>
+              <textarea class="form-control" name="description" id="description" rows="5"></textarea>
+          </div>
+      
+          <div class="form-group">
+              <label for="price">Product Price</label>
+              <input type="number" class="form-control" name="price" id="price" required>
+          </div>
+      
+          <div class="form-group">
+              <label for="category">Select Category</label>
+              <select class="form-control" name="category" id="category" required>
+                  {% for category in categories %}
+                  <option value="{{category.id}}">{{category.title}}</option>
+                  {% endfor %}
+                  <option value="new">Add New Category</option>
+              </select>
+          </div>
+
+          <div id="newCategoryInput" style="display: none;">
+            <div class="form-group">
+                <label for="newCategory">New Category</label>
+                <input type="text" class="form-control" id="newCategory" name="newCategory">
+            </div>
+          </div>
+          <input type="hidden" name="redirect_url" value="{{request.path}}">
+      
+          <div class="form-group">
+              <label for="image">Select Image</label>
+              <input type="file" class="form-control-file" name="image" id="image">
+          </div>
+      
+          <div class="form-group">
+              <label for="quantity">Enter Quantity</label>
+              <input type="number" class="form-control" min="0" name="quantity" id="quantity" required>
+          </div>
+      
+          <div class="form-group text-center">
+              <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+      </form>
+      
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function() {
+      // Show/hide new category input field based on user selection
+      $('#category').change(function() {
+          if ($(this).val() == 'new') {
+              $('#newCategoryInput').show();
+          } else {
+              $('#newCategoryInput').hide();
+          }
+      });
+  });
+  </script>
+  

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Bosh sahifa
+{% endblock %}
+
+{% block content %}
+
+<style>
+    a{
+        color: black;
+    }
+    a:hover {
+        text-decoration: none;
+        color: rgb(131, 0, 0);
+    }
+</style>
+
+<h2 class="text-center mt-5">
+    Welcome
+</h2>
+
+<div class="container d-flex">
+    <div class="card m-5" style="width: 18rem;">
+        <a href="{% url 'products' %}">
+        <h2 class="text-center mt-5"><i class="fa-solid fa-bag-shopping"></i></h2>
+        <div class="card-body">
+          <h3 class="card-text text-center">Sotuv bo'limi</h3>
+        </div>
+    </a>
+      </div>
+    
+      <div class="card m-5" style="width: 18rem;">
+        <a href="{% url 'sold' %}">
+        <h2 class="text-center mt-5"><i class="fa-solid fa-clipboard"></i></h2>
+        <div class="card-body">
+            <h3 class="card-text text-center">Sotilgan mahsulotlar</h3>
+        </div>
+        </a>
+      </div>
+
+      <div class="card m-5" style="width: 18rem;">
+        <a href="{% url 'warehouse' %}">
+        <h2 class="text-center mt-5"><i class="fa-solid fa-warehouse"></i></h2>
+        <div class="card-body">
+          <h3 class="card-text text-center">Omborxona</h3>
+        </div>
+      </div>
+      </a>
+</div>
+
+{% endblock %}

@@ -1,0 +1,366 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Mahsulotlar
+{% endblock  %}
+
+{% block content  %}
+
+<style>
+    .quantity-input-container {
+    display: flex;
+    align-items: center;
+}
+
+.quantity-input {
+    width: 60px;
+    padding: 5px;
+    text-align: center;
+    border: 1px solid #ced4da; /* Add your preferred border styles */
+    border-radius: 5px; /* Add your preferred border radius */
+}
+
+.quantity-btn {
+    width: 30px;
+    height: 30px;
+    background-color: #007bff; /* Add your preferred button background color */
+    color: white; /* Add your preferred button text color */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 0 5px;
+}
+
+.plus-btn {
+    border-radius: 0 5px 5px 0;
+}
+
+.minus-btn {
+    border-radius: 5px 0 0 5px;
+}
+
+
+.card {
+    border-radius: 15px;
+}
+
+.card-title {
+    color: #333;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.cart-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+
+
+
+
+</style>
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4"> <span><a href="{% url 'index' %}"><button class="btn btn-primary">Bosh menu</button></a></span> Mahsulotlar <span><a href="{% url 'sold' %}"><button class="btn btn-secondary">Sotilganlar</button></a></span></h2>
+    <div class="row">
+        <div class="col-md-7">
+            <table class="table table-striped">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Rasmi</th>
+                        <th>Nomi</th>
+                        <th>Kategoriya</th>
+                        <th>Narxi</th>
+                        <th>Mavjud</th>
+                        <th>Miqdori</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Start product loop -->
+                    {% for product in products %}
+                        <tr>
+                            <td>
+                                <img src="{{ product.product.image.url }}" alt="{{ product.title }}" style="width: 45px; height: 45px" class="rounded-circle">
+                            </td>
+                            <td>{{ product.product.title }}</td>
+                            <td>
+                                <span class="badge badge-success">{{ product.product.category }}</span>
+                            </td>
+                            <td>{{ product.product.price }}</td>
+                            <td>{{product.quantity}}</td>
+                            <td class="quantity-input-container">
+                                <button type="button" class="quantity-btn minus-btn">-</button>
+                                <input type="number" min="0" value="0" max="{{ product.quantity }}" id="quantity_{{ product.id }}" class="quantity-input">
+                                <button type="button" class="quantity-btn plus-btn">+</button>
+                            </td>
+                            
+                        </tr>
+                    {% endfor %}
+                    <!-- End product loop -->
+                </tbody>
+            </table>
+            
+        </div>
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title text-center mb-4">Shopping Cart</h5>
+                    <ul class="list-group cart-list" id="cartList">
+                        <!-- Cart items will be displayed here -->
+                    </ul>
+                    <hr>
+                    <p class="text-center">Total: <span id="totalAmount">0</span></p>
+                    <div class="d-flex justify-content-center">
+                        <button class="btn btn-primary mr-2" id="submitButton">Tasdiqlash</button>
+                        <button class="btn btn-danger" id="resetButton">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+
+$(document).ready(function() {
+        // Reset button click event
+        $('#resetButton').click(function() {
+            // Clear input values and set them to zero
+            $('.quantity-input').val(0);
+            // Clear cart list
+            $('#cartList').empty();
+            // Reset total amount
+            $('#totalAmount').text('0');
+        });
+
+    });
+
+
+    // Get the input field and buttons
+const quantityInput = document.getElementById('quantity');
+const minusBtn = document.querySelector('.minus-btn');
+const plusBtn = document.querySelector('.plus-btn');
+
+
+// Add event listeners to quantity buttons
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners to quantity buttons
+    document.querySelectorAll('.quantity-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var inputField = this.parentElement.querySelector('.quantity-input');
+            var currentValue = parseInt(inputField.value);
+
+            if (this.classList.contains('plus-btn')) {
+                if (parseInt(inputField.max)>inputField.value){
+
+                    inputField.value = currentValue + 1;
+                }
+            } else if (this.classList.contains('minus-btn') && currentValue > 0) {
+                inputField.value = currentValue - 1;
+            }
+
+            updateCart();
+        });
+    });
+
+    // Add event listener for manual input
+    document.querySelectorAll('.quantity-input').forEach(function(inputField) {
+        inputField.addEventListener('input', function() {
+            var currentValue = parseInt(inputField.value);
+            var maxValue = parseInt(inputField.max);
+
+            // Validate the entered value against the maximum allowed value
+            if (currentValue > maxValue) {
+                inputField.value = maxValue; // Set the input value to the maximum allowed value
+            } else if (currentValue < 0 || isNaN(currentValue)) {
+                inputField.value = 0; // Reset the input value to 0 if it's negative or not a number
+            }
+
+            updateCart();
+        });
+    });
+
+
+    // Function to update the cart
+    function updateCart() {
+        var totalAmount = 0;
+        var cartList = document.getElementById('cartList');
+        cartList.innerHTML = ''; // Clear the cart list
+
+        document.querySelectorAll('.quantity-input').forEach(function(inputField) {
+            var quantity = parseInt(inputField.value);
+            var productPrice = parseFloat(inputField.closest('tr').querySelector('td:nth-child(4)').textContent);
+            var productName = inputField.closest('tr').querySelector('td:nth-child(2)').textContent;
+
+            if (quantity > 0) {
+                // Add the product to the cart
+                var listItem = document.createElement('li');
+                listItem.className = 'list-group-item';
+                listItem.textContent = productName + ' x ' + quantity + ' - $' + (productPrice * quantity).toFixed(2);
+                cartList.appendChild(listItem);
+
+                // Update the total amount
+                totalAmount += productPrice * quantity;
+            }
+        });
+
+        // Update the total amount in the shopping cart
+        document.getElementById('totalAmount').textContent = totalAmount.toFixed(2);
+    }
+});
+
+
+
+
+
+document.getElementById('submitButton').addEventListener('click', function() {
+    var products = [];
+    var quantities = [];
+
+    // Collect selected products and quantities
+    document.querySelectorAll('.quantity-input').forEach(function(inputField) {
+        var quantity = parseInt(inputField.value);
+        if (quantity > 0) {
+            var productName = inputField.closest('tr').querySelector('td:nth-child(2)').textContent;
+            products.push(productName);
+            quantities.push(quantity);
+        }
+    });
+
+    var quantities = Array.from(document.querySelectorAll('.quantity-input'))
+    .filter(input => input.value > 0)
+    .map(input => {
+        return {
+            productId: input.id.split('_')[1], // Extract the product ID from the input ID
+            quantity: input.value
+        };
+    });
+
+    // Fetch CSRF token from cookies
+    var csrftoken = getCookie('csrftoken');
+
+    // Send data to the Django backend
+    fetch('{% url "getdata" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken  // Include the CSRF token in the headers
+        },
+        body: JSON.stringify({ products: products, quantities: quantities })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Data sent successfully:', data);
+        // Optionally, handle the response from the backend
+        clearCart();
+        clearInputs();
+        location.reload()
+        
+    })
+    .catch(error => {
+        console.error('There was a problem with your fetch operation:', error);
+        showMessage('Error sending data. Please try again later.');
+    });
+});
+
+// Function to display a message to the user
+function showMessage(message) {
+    // Create a new element for the message
+    var messageElement = document.createElement('div');
+    messageElement.textContent = message;
+    messageElement.classList.add('alert', 'alert-info'); // Add Bootstrap alert classes
+
+    // Add the message element to the document body
+    document.body.appendChild(messageElement);
+
+    // Remove the message after a certain duration (e.g., 5 seconds)
+    setTimeout(function() {
+        messageElement.remove();
+    }, 5000); // 5 seconds
+}
+
+
+// Function to clear the shopping cart
+function clearCart() {
+    var cartList = document.getElementById('cartList');
+    cartList.innerHTML = ''; // Clear the list content
+    document.getElementById('totalAmount').textContent = '0'; // Reset the total amount
+}
+
+// Function to clear the input fields
+function clearInputs() {
+    var quantityInputs = document.querySelectorAll('.quantity-input');
+    quantityInputs.forEach(input => {
+        input.value = '0'; // Reset the input value to 0
+    });
+}
+
+
+
+// Function to fetch CSRF token from cookies
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+
+
+
+
+
+
+
+
+</script>
+{% endblock  %}
